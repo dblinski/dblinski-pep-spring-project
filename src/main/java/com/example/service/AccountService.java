@@ -1,5 +1,7 @@
 package com.example.service;
 
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -31,12 +33,18 @@ public class AccountService {
             return accountRepository.save(account);
         }
         else{
-            return doesAccountExist; //409
+            return new Account(account.getUsername(), account.getPassword()); //409
         }
     }
 
     public Account getAccountById(Integer accountId){
-        return accountRepository.findById(accountId.longValue()).orElse(null);
+        Optional<Account> optionalAccount = accountRepository.findById(accountId);
+        if(optionalAccount.isPresent()){
+            return optionalAccount.get();
+        }
+        else{
+            return null;
+        }
     }
 
     public Account getAccountByUsernameAndPassword(String username, String password){

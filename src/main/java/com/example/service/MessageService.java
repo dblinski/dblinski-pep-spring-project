@@ -1,6 +1,7 @@
 package com.example.service;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -15,14 +16,11 @@ public class MessageService {
     public MessageService(MessageRepository messageRepository){
         this.messageRepository = messageRepository;
     }
-    
-    public Message insertMessage(Message message){
-        //message text not blank, <256 chars, and postedBy is a real user
-        Message findMessage = messageRepository.findById(message.getMessageId().longValue()).orElse(null);
-        if(message.getMessageId() != null 
-        || message.getMessageText().isEmpty() 
+
+    public Message persistMessage(Message message, AccountService accountService){
+        if(message.getMessageText().isEmpty() 
         || message.getMessageText().length() > 255
-        || findMessage == null){
+        || accountService.getAccountById(message.getPostedBy()) == null){
             return null;
         }
         return messageRepository.save(message);
@@ -31,21 +29,27 @@ public class MessageService {
         return messageRepository.findAll();
     }
     public Message getMessageById(Integer messageId){
-        return messageRepository.findById(messageId.longValue()).orElse(null);
+        Optional<Message> optionalMessage = messageRepository.findById(messageId);
+        if(optionalMessage.isPresent()){
+            return optionalMessage.get();
+        }
+        else{
+            return null;
+        }
     }
     public Message updateMessage(Integer messageId, String messageText){
-        Message findMessage = messageRepository.findById(messageId.longValue()).orElse(null);
-        if(findMessage == null || messageText.isEmpty() || messageText.length() > 255){
+        Message findMessage = messageRepository.findById(messageId).orElse(null);
+        if(findMessage == null || messageText.isEmpty() || messageText.isBlank() || messageText.length() > 255){
             return null; //400
         }
         findMessage.setMessageText(messageText);
         messageRepository.save(findMessage);
         return findMessage;
     }
-    public Message deleteMessage(Message message){
-        Message findMessage = messageRepository.findById(message.getMessageId().longValue()).orElse(null);
+    public Message deleteMessage(Integer messageId){
+        Message findMessage = messageRepository.findById(messageId).orElse(null);
         if(findMessage != null){
-            messageRepository.delete(message);
+            messageRepository.delete(findMessage);
             return findMessage;
         }
         return null;
