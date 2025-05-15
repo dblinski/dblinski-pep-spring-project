@@ -1,8 +1,13 @@
 package com.example.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.entity.Account;
 import com.example.service.AccountService;
 import com.example.service.MessageService;
 
@@ -18,6 +23,24 @@ public class SocialMediaController {
     private AccountService accountService;
     @Autowired
     private MessageService messageService;
+
+    @PostMapping("/register")
+    public ResponseEntity register(@RequestBody Account account){
+        Account newAccount = accountService.insertAccount(account);
+        //TODO
+        return ResponseEntity.status(400).body("error");
+
+    }
+    @PostMapping("/login")
+    public ResponseEntity<Account> login(@RequestBody Account account){
+        Account newAccount = accountService.getAccountByUsernameAndPassword(account.getUsername(), account.getPassword());
+        if(newAccount == null){
+            return new ResponseEntity<>(newAccount, HttpStatus.UNAUTHORIZED);
+        }
+        else{
+           return new ResponseEntity<>(newAccount, HttpStatus.OK);
+        }
+    }
     /*
      * 1. new user registration
      * POST /register
